@@ -1,0 +1,31 @@
+import csv
+import sys
+import unicodecsv as csv
+
+# Define data
+data = [('a09i000000qv7NOAAY,a2k5A0000006PQY,a2j5A000000F8Rb,Whitebox Advisors 2015,Q3 2017,Clinical Data Inc.,001i000001T7MaL,Equity,10/19/2017,10/19/2017,HC - Healthcare,Analyst,Charlie Dorn Smith')]
+
+# Write CSV file
+kwargs = {'newline': ''}
+mode = 'w'
+if sys.version_info < (3, 0):
+    kwargs.pop('newline', None)
+    mode = 'wb'
+
+with open('test.csv', mode, **kwargs) as fp:
+    writer = csv.writer(fp, delimiter=str(','))
+    # writer.writerow(["your", "header", "foo"])  # write header
+    writer.writerows(data)
+
+# Read CSV file
+kwargs = {'newline': ''}
+mode = 'r'
+if sys.version_info < (3, 0):
+    kwargs.pop('newline', None)
+    mode = 'rb'
+with open('test.csv', mode, **kwargs) as fp:
+    reader = csv.reader(fp, delimiter=',', quotechar='"')
+    # next(reader, None)  # skip the headers
+    data_read = [row for row in reader]
+
+print(data_read)
