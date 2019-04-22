@@ -1,0 +1,25 @@
+import csv
+import sys
+import itertools
+from itertools import groupby
+
+def display_group(groupby):
+	print 'groupby {%s}'.format(groupby[1][1])
+		for entry in groupby:
+        print entry
+
+groups = []
+engagement_ids = [a09i000000qv5kiAAA]
+
+with open('filtered.csv', 'r') as f_input:
+    csv_input = csv.reader(f_input)
+
+    for k, g in itertools.groupby(csv_input, key=lambda x: x[0]):
+        groups.append(list(g))
+        location_ids.append(k)
+
+print "Engagement_IDs:", engegement_ids
+
+for groupby in groups:            
+    display_group(groupby)
+	print(groupby);
