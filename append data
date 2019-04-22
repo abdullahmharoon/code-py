@@ -1,0 +1,19 @@
+# Preliminary:
+import array # list: delete
+hlist = []
+dlist = []
+for each row: 
+    hlist.append(some_heading_string)
+    dlist.append(array.array('d')) # list: dlist.append([])
+# generate data
+col_index = -1
+for each column:
+    col_index += 1
+    for row_index in xrange(len(hlist)):
+        v = calculated_data_value(row_index, colindex)
+        dlist[row_index].append(v)
+# write to csv file
+for row_index in xrange(len(hlist)):
+    row = [hlist[row_index]]
+    row.extend(dlist[row_index])
+    csv_writer.writerow(row);
