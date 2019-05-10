@@ -1,0 +1,14 @@
+from math import *
+
+a = str(100**2)
+b = str(45**4)
+c = "apple"
+d = "RED"
+print(c.partition(a))
+print (a.format.floor(3.7))
+print(a[-1], b[1])
+print(c.capitalize())
+print(d.lower())
+for x in range(1,10):
+    print(c.replace("apple","orange",1))
+    print(d.split(" | "))
