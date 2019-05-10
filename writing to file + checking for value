@@ -1,0 +1,18 @@
+file = open("SampleData.txt", "r+")
+file.read()
+some_list = ['a', 'b', 'c', 'b', 'd', 'm', 'n', 'n', 'r', 'r', 'a', 'f', 'h',]
+list = input("Data Input: ")
+raw = int(input("Raw Data Values: "))
+some_list.append(list)
+print(some_list)
+
+duplicates = []
+
+for value in some_list:
+    if some_list.count(value) > 0:
+        if value not in duplicates:
+            duplicates.append(value)
+
+print(len(duplicates), duplicates)
+file.write(str(some_list))
+file.close()
