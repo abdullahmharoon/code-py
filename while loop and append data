@@ -1,0 +1,21 @@
+name_input =input("Enter Your Name: ")
+age_input =input("What us Your Age: ")
+phrase=['Abdullah','Haroon','Smith',name_input, age_input]
+
+
+
+i = 1
+while i >= 1 and i <= 10:
+    phrase.append("Bushra")
+    phrase.insert(1, "Ali")
+    print(i, phrase)
+    i += 1
+
+i = 11
+while i >= 11 and i <=20:
+    phrase.clear()
+    phrase.append("Bushra")
+    phrase.insert(0, "Bilal")
+    print(i, phrase)
+    i += 1
+
