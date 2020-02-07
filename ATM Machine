@@ -1,0 +1,78 @@
+import pandas as pd
+from fuzzywuzzy import fuzz
+from fuzzywuzzy import process
+
+print("Welcome to Quigley Bank")
+restart =('Y')
+chances = 3
+balance = 2000.12
+
+while chances >=0:
+    pin =int(input("Please Enter your Pin: "))
+    if pin == 1234:
+        print("You Entered the correct PIN")
+        while restart not in ("n","NO","no","N"):
+            print("For Balance enter 1")
+            print("For Withdraw enter 2")
+            print("For Deposit enter 3")
+            print("To Return Card press 4")
+            option = int(input("Select Options?: "))
+            if option ==1:
+                option1 = "N"
+                print("Your balance is", balance)
+                restart = input("Would you Like to go back to Menu")
+                if restart in ("n","NO","no","N"):
+                    print("Thank You")
+                    exit()
+            if option ==2:
+                withdraw = float(input("Withdraw Amount:? $10 | $20 | $30 | $40 | $50 | $60: "))
+                if withdraw in range(10,600):
+                    balance = balance - withdraw
+                    print("Your balance is", balance)
+                    restart = input("Return to menu")
+                    if restart in ['n','N','no','NO']:
+                        print("Thank You")
+                        break
+                elif withdraw not in range(10,500):
+                    print("Please Enter desired Amount: ")
+                    balance = balance - withdraw
+                    print(balance)
+                    restart = input("Would you Like to go back to Menu: ")
+                    if restart in ['y','Y','Yes','YES']:
+                        print("Thank You")
+                        break
+                    elif restart not in ['y','Y','Yes','YES']:
+                        print("See you Soon! ")
+                        exit()
+            if option ==3:
+                deposit = float(input("Deposit Ampunt: $10 | $20 | $30 | $40 | $50 | $60: "))
+                if deposit in range(10,600):
+                    balance = balance + deposit
+                    print("Your Balance is:",balance)
+                    restart = input("Return to menu")
+                    if restart in ["n","NO","no","N"]:
+                        print("Thank You")
+                        break
+                elif deposit not in range(10,600):
+                    balance = balance + deposit
+                    print(balance)
+                    if restart in ['y', 'Y', 'Yes', 'YES']:
+                        print("Thank You")
+                        break
+                    elif restart not in ['y', 'Y', 'Yes', 'YES']:
+                        print("See you Soon! ")
+                        exit()
+            if option ==4:
+                option4 ='y'
+                restart = input("Return Card: ")
+                if restart in ['y','Y','Yes','yes']:
+                    print("Thank Your")
+                    exit()
+
+    elif pin != 1234:
+        print("Incorrect PIN, Try Again")
+        chances = chances - 1
+        #        restart = int(input("Please Enter your PIN: "))
+        if chances == 0:
+            print('NO More Tries')
+            break
