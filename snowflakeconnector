@@ -1,0 +1,74 @@
+import snowflake.connector
+import sys
+import os
+import requests
+
+#set up Snowflake connection
+
+#USER = PASSWORD = ACCOUNT = ''
+
+#if len(sys.argv) < 4:
+    #print("ERROR: Please pass the following command-line parameters in order:")
+    #print(" user, password, account")
+    #sys.exit(-1)
+#else:
+    #USER = sys.argv[1]
+    #PASSWORD = sys.argv[2]
+    #ACCOUNT = sys.argv[3]
+
+#XXX.snowflakecomputing.com
+con = snowflake.connector.connect(
+  user = 'abdullahh',
+  password = '',
+  account = 'XXX'
+)
+
+cs = con.cursor()
+
+#Create new warehouse
+cs.execute("CREATE or REPLACE WAREHOUSE test_wh WITH WAREHOUSE_SIZE = 'XSMALL' WAREHOUSE_TYPE = 'STANDARD' AUTO_SUSPEND = 60 AUTO_RESUME = TRUE MIN_CLUSTER_COUNT = 1 MAX_CLUSTER_COUNT = 1 SCALING_POLICY = 'STANDARD';")
+
+for i in cs:
+    print i
+
+#Create new database
+cs.execute("CREATE or REPLACE DATABASE test_db")
+
+for i in cs:
+    print i
+
+#Create new Schema
+cs.execute("CREATE or REPLACE SCHEMA test_python")
+
+for i in cs:
+    print i
+
+#Create staging table for JSON data
+table_ddl = "CREATE or REPLACE TABLE TEST_JSON_TABLE (jsonData VARIANT)"
+
+cs.execute(table_ddl)
+
+for i in cs:
+    print i
+
+#Query timezone API
+response = requests.get('http://api.timezonedb.com/v2.1/list-time-zone', params = [('key','XXX'),('format','json')])
+
+#Wrap response into INSERT statement
+insertStatement = "INSERT into TEST_JSON_TABLE SELECT PARSE_JSON(\'"+response+"\')"
+
+cs.execute(insertStatement)
+
+#Create a new view that parses JSON data into structured format
+table_ddl = "CREATE or REPLACE VIEW TEST_STRUCTURED_VIEW AS select value:countryCode::string COUNTRYCODE, value:countryName::string COUNTRYNAME, value:zoneName::string ZONENAME, value:gmtOffset::integer GMTOFFSET, value:timestamp::integer TIMESTAMP from TEST_JSON_TABLE, lateral flatten( JSONDATA:zones )"
+
+cs.execute(table_ddl)
+
+for i in cs:
+    print i
+
+#read data from new table
+cs.execute("SELECT * FROM TEST_STRUCTURED_VIEW a")
+
+for i in cs:
+    print i
