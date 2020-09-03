@@ -1,0 +1,534 @@
+#Changing default package library
+
+#.libPaths('C:/Rlibs')
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(testthat)
+#Removes objecs from system memory
+rm(list = ls())
+dir.create("//Users/abdullahh/Documents/Chase/United/Q3 2019 08-27-19 RStudio Output")
+# dir.create("//Volumes/CompanySharedData/Chase UNITED/Chase_United_2019/Digital/Q3/Weekly Reporting/Inputs/")
+directory <- "//Users/abdullahh/Documents/marka/Chase/United/Q3 2019 08-27-19 RStudio Output"
+setwd(directory)
+# library(xlsx)
+
+start.date <- "2019-07-01"
+end.date <- "2019-08-25"
+# end.date2 <- floor_date(Sys.Date(),"week")
+  
+Consumer_campaigns <- c(
+  
+  "QuigleySimpson_PCUE_cc_2019_ACQ/AWA_M01_19_NQYZT",
+  "Chase United Explorer Digital 2019"
+)
+Business_campaigns <- c(
+  
+ "QuigleySimpson_PCUB_cc_Q3/Q4'19 Business Card Pulse Digital_M08_19_DANZY",
+ "Chase Digital Business Card Q3Q419"  
+  
+)
+  
+Smarter_travel_placements <- c(
+  
+"CH~EMAIL_IT~DIR_DA~NA_PB~AIRFAREWATCHDOGCOM_OB~ACQ_PK~CPIA_PD~AWD_BB Combined Dedicated Newsletter_5.30_8.01_SZ~CSTM_DT~CROSS_RT~FLT-SPL_VV~--_TG~CON_DS~Site_FM~NEW_AD~SS1x1",
+"CH~EMAIL_IT~DIR_DA~NA_PB~SMARTERTRAVEL_NETWORK_OB~ACQ_PK~CPIA_PD~ST Dedicated Newsletter 7.18_SZ~CSTM_DT~CROSS_RT~FLT-SPL_VV~--_TG~CON_DS~--_FM~NEW_AD~SS1x1",
+"CH~EMAIL_IT~DIR_DA~NA_PB~AIRFAREWATCHDOGCOM_OB~ACQ_PK~CPIA_PD~AWD Dedicated Newsletter 8.13_SZ~CSTM_DT~CROSS_RT~FLT-SPL_VV~--_TG~CON_DS~--_FM~NEW_AD~SS1x1"
+
+)
+
+#Input.Path <- "//QS9/CompanySharedData/Chase UNITED/Chase_United_2019/Digital/Q3/Weekly Reporting/Consumer/Inputs/"
+Input.Path <- "//Volumes/CompanySharedData/Chase UNITED/Chase_United_2019/Digital/Q3/Weekly Reporting/Consumer/Inputs/"
+H1_Weekly <- "United_Q3_Post_Pulse.csv"
+TTD <- "Q3 Post Pulse TTD.xlsx"
+MiQ_Name <- "MiQ.xlsx"
+MBT_Name <- "MBTmedia.xlsx"
+  Smarter_travel_newsletters <- "Smarter Travel Newsletters.csv"
+Path_DMA <- "United_Q3_DMA.xlsx"
+DMA_Lookup_Path <- "DMA Lookup Table.csv"
+
+DMA.Report <-read_excel(paste0(Input.Path,Path_DMA),sheet = "Data", skip = 14)
+
+DMA_Lookup_Table <- read_csv(paste0(Input.Path,DMA_Lookup_Path))
+
+## Read My Bank Tracker Input
+
+MBTmedia <- read_excel(paste0(Input.Path,MBT_Name), sheet="Vendor Data") %>%
+  rename(Date = DATE, Placement = PLACEMENT, 'Media Cost' = 'MEDIA COST') %>%  
+  select(c('Date','Placement','Media Cost')) %>% 
+  mutate('Site (DCM)'= "MyBankTracker", 'Campaign'='QuigleySimpson_PCUE_cc_2019_ACQ/AWA_M01_19_NQYZT',Date = ymd(Date))
+
+## Read Smarter Travel Dummy Data
+
+Smarter_Travel_Input <- read_csv(paste0(Input.Path,Smarter_travel_newsletters)) %>% mutate(Date = mdy(Date))
+
+## Read Media IQ Report
+
+
+MiQ <- read_excel(paste0(Input.Path,MiQ_Name), sheet = "Raw Data") %>% 
+  select(c("Campaign","Placement","Date","Media Cost")) %>% 
+  mutate(Date = ymd(Date), Creative = Placement, 'Site (DCM)'="Media IQ", Creative = Placement)
+
+
+
+# Read Tradedesk Report 
+
+TTD.names <- c("Date","Campaign",	"Ad Format",	"Creative",	"Advertiser Cost (Adv Currency)")
+
+TTD.merge <- read_excel(paste0(Input.Path,TTD), sheet = "Ad Group Performance_data") %>% 
+  filter(Campaign == "Chase United Explorer Digital 2019" | Campaign == "Chase Digital Business Card Q3Q419") %>% 
+  select(TTD.names) %>% 
+  mutate(Date = ymd(Date), "Placement"=Creative, "Site (DCM)"="The Trade Desk") %>% 
+  rename("Creative Pixel Size" = "Ad Format","Media Cost"="Advertiser Cost (Adv Currency)")
+
+
+
+## READ ALL CARDS WEEKLY
+
+## getting colNames from older report
+DCM.campaigns <- c('QuigleySimpson_PCUE_cc_2019_ACQ/AWA_M01_19_NQYZT',"QuigleySimpson_PCUB_cc_Q3/Q4'19 Business Card Pulse Digital_M08_19_DANZY")
+
+H2_AllCardWeeklyReport <- read_csv(paste(Input.Path,H1_Weekly,sep=""), skip = 12) %>% mutate(Date = mdy(Date)) %>% 
+  filter(`Campaign` %in% DCM.campaigns, Date>= start.date,Date<= end.date)
+
+H2_Test <- H2_AllCardWeeklyReport %>% filter(`Campaign` %in% DCM.campaigns) %>% filter(Date)
+
+DMA.Chart.Column.Order <- c("Designated Market Area (DMA)",
+                            "Media Cost",
+                            "Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions",
+                            "Flex Application Conversion tags : United Instant Approval TY Page: View-through Conversions",
+                            "Flex Application Conversion tags : United Pending TY Page: Click-through Conversions",         
+                            "Flex Application Conversion tags : United Pending TY Page: View-through Conversions",
+                            "Partner - United : Flex App United Explorer Business Approved: Click-through Conversions",
+                            "Partner - United : Flex App United Explorer Business Pending: Click-through Conversions",
+                            "TotalEstimatedApprovals",
+                            "CTApprovals"
+)  
+
+DMA <- DMA.Report %>% mutate(TotalEstimatedApprovals = `Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions`
+                             + `Flex Application Conversion tags : United Instant Approval TY Page: View-through Conversions`
+                             + (`Flex Application Conversion tags : United Pending TY Page: Click-through Conversions`
+                                + `Flex Application Conversion tags : United Pending TY Page: View-through Conversions`
+                                + `Partner - United : Flex App United Explorer Business Pending: Click-through Conversions`)*.33) %>% 
+        mutate(CTApprovals = (`Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions` 
+        + (`Flex Application Conversion tags : United Pending TY Page: Click-through Conversions` *.33)))    %>% mutate(Date = ymd(Date)) %>%
+       filter(`Designated Market Area (DMA)`!="Grand Total:",`Designated Market Area (DMA)`!="No Metro",Date <= end.date,Date >= start.date)
+
+DMA_For_Tableau <- left_join(DMA, DMA_Lookup_Table)
+
+write_csv(DMA_For_Tableau, "DMA_For_Tableau.csv")
+
+Consumer.Chart <- DMA %>% filter(Campaign=="QuigleySimpson_PCUE_cc_2019_ACQ/AWA_M01_19_NQYZT") %>% select(-c(Date,Campaign)) %>% 
+  group_by(`Designated Market Area (DMA)`) %>% summarize_all(sum) %>% 
+  select(DMA.Chart.Column.Order)
+
+Business.Chart <- DMA %>% filter(Campaign=="QuigleySimpson_PCUB_cc_Q3/Q4'19 Business Card Pulse Digital_M08_19_DANZY") %>% select(-c(Date,Campaign)) %>% 
+  group_by(`Designated Market Area (DMA)`) %>% summarize_all(sum) %>% 
+  select(DMA.Chart.Column.Order)
+
+
+                            
+write.csv(Consumer.Chart %>% arrange(desc(CTApprovals)), file="~Geo_Details_MediaCost.csv")
+write.csv(Business.Chart %>% arrange(desc(CTApprovals)), file="~Business_Geo_Details_MediaCost.csv")
+
+
+
+
+
+#write_xlsx(Geo_Details, "//qs9/MyDocuments$/MarkA/Documents/Chase United/Week 1 RStudio Output/output.xlsx")                        
+# 
+# ## READ CREATIVE VIDEO PERFORMANCE DCM REPORT
+# 
+
+# 
+# 
+
+
+#write_xlsx(data.frames, "//qs9/MyDocuments$/MarkA/Documents/Chase United/Week 1 RStudio Output/output.xlsx")
+# 
+#  
+#   
+#   ALL CARDS WEEKLY DE-DUPING
+# 
+# 
+# 
+#length(c(NA,NA,"Trade Desk CTV", rep(NA,53)))
+#H2_AllCardWeeklyReport <- rbind(H2_AllCardWeeklyReport, c(0,0,"Trade Desk CTV",0,"2018-08-26", rep(0,51)))
+
+Site_2_Filter <- c("FACEBOOK (USA)","Snapchat","Pinterest, Inc", "Sojern", "Taboola")
+H2_AllCardWeeklyReport <- H2_AllCardWeeklyReport %>% filter(!`Site (DCM)` %in% c("FACEBOOK (USA)","Snapchat","Pinterest, Inc"))
+
+H2_AllCardWeeklyReport$Date <- ymd(H2_AllCardWeeklyReport$Date)
+
+
+
+
+
+# RENAME SITES
+
+H2_AllCardWeeklyReport$`Site (DCM)` <- gsub("AcuityAds", "Acuity Ads", H2_AllCardWeeklyReport$`Site (DCM)`)
+H2_AllCardWeeklyReport$`Site (DCM)` <- gsub("smartertravel", "Smarter Travel", H2_AllCardWeeklyReport$`Site (DCM)`)
+H2_AllCardWeeklyReport$`Site (DCM)` <- gsub("SeatGuru", "Trip Advisor", H2_AllCardWeeklyReport$`Site (DCM)`)
+
+
+
+# DO NOT FORGET TO FILTER BY DATE
+# 
+# 
+#       Clean up the section below
+#
+#
+#
+#
+#
+#
+#
+#
+
+H2_AllCardWeeklyReport <- H2_AllCardWeeklyReport %>% filter(`Date` <= end.date,`Date`>=start.date)
+H2_AllCardWeeklyReport$`Media Cost`[H2_AllCardWeeklyReport$`Site (DCM)`=="Media IQ"] <- 0
+H2_AllCardWeeklyReport$`Impressions`[H2_AllCardWeeklyReport$`Placement` %in% Smarter_travel_placements] <- 0
+H2_AllCardWeeklyReport$`Clicks`[H2_AllCardWeeklyReport$`Placement` %in% Smarter_travel_placements] <- 0
+
+#H2_AllCardWeeklyReport 
+
+## BRUTE FORCE DE-DUPE 
+
+
+deduped <- H2_AllCardWeeklyReport 
+
+Merged_file <- full_join(deduped,TTD.merge)
+Joined_MIQ <- full_join(Merged_file, MiQ)
+Joined_MBT <- full_join(Joined_MIQ,MBTmedia)
+Joined_Final <- full_join(Joined_MBT,Smarter_Travel_Input) %>% filter(Date>=start.date,Date<=end.date)
+
+Joined_Final_For_Tableau <- Joined_Final %>% mutate(`Creative by Size`= Creative,`Creative by Variant` = Creative)
+
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*300x50.*", "300x50", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*120x600.*", "120x600", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*320x50.*", "320x50", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*160x600.*", "160x600", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*160X600.*", "160x600", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*300x250.*", "300x250", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*300x600.*", "300x600", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*728x90.*", "728x90", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*970x250.*", "970x250", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Size` <- gsub(".*325x600.*", "300x600", Joined_Final_For_Tableau$`Creative by Size`, ignore.case = T)
+
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant1_offer.*", "Variant 1", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant2_offer.*", "Variant 2", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant3_offer.*", "Variant 3", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant4_offer.*", "Variant 4", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant5_offer.*", "Variant 5", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_variant6_offer.*", "Variant 6", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*Q2PP_Offer_.*", "Offer", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_FullOffer_.*", "Full Offer", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*_Static.*", "Static", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+Joined_Final_For_Tableau$`Creative by Variant` <- gsub(".*Biz_OfferEnds.*", "Business Offer Ends", Joined_Final_For_Tableau$`Creative by Variant`, ignore.case = T)
+
+
+
+Joined_MIQ %>% group_by(`Site (DCM)`) %>% summarize(Imps = sum(Impressions, na.rm=T))
+
+#deduped2 <- deduped %>% mutate(Impressions =ifelse(str_detect(Placement, "End_SZ"),  0, Impressions))
+
+Columns.to.use <- c(
+  "Site (DCM)"  ,                                                                                 
+  "Impressions" ,                                                                                         
+  "Clicks"      ,                                                                                         
+  "Media Cost"   ,                                                                                        
+  "Flex Application Conversion tags : United Application Page: Click-through Conversions"   ,             
+  "Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions"    ,    
+  "Flex Application Conversion tags : United Pending TY Page: Click-through Conversions"    ,             
+  "Flex Application Conversion tags : United Application Page: View-through Conversions"   ,              
+  "Flex Application Conversion tags : United Instant Approval TY Page: View-through Conversions"     ,    
+  "Flex Application Conversion tags : United Pending TY Page: View-through Conversions"    ,              
+  "Flex Application Conversion tags : United Club Card Application: Click-through Conversions"     ,      
+  "Flex Application Conversion tags : United Club Card_Approved: Click-through Conversions"       ,       
+  "Flex Application Conversion tags : United Club Card_Pending: Click-through Conversions"         ,      
+   "Flex Application Conversion tags : United Club Card Application: View-through Conversions"      ,      
+  "Flex Application Conversion tags : United Club Card_Approved: View-through Conversions"           ,    
+ "Flex Application Conversion tags : United Club Card_Pending: View-through Conversions"              ,  
+  "Flex Application Conversion tags : United Business Card_Application: Click-through Conversions"     ,  
+  "Flex Application Conversion tags : United Business Card_Approved: Click-through Conversions"         , 
+"Flex Application Conversion tags : United Business Card_Pending: Click-through Conversions"           ,
+   "Flex Application Conversion tags : United Business Card_Application: View-through Conversions"      ,  
+   "Flex Application Conversion tags : United Business Card_Approved: View-through Conversions"          , 
+"Flex Application Conversion tags : United Business Card_Pending: View-through Conversions"            ,
+ "Flex Application Conversion tags : Flex App United Travel Bank Application: Click-through Conversions",
+  "Flex Application Conversion tags : Flex App United Travel Bank Approved: Click-through Conversions"   ,
+   "Flex Application Conversion tags : Flex App United Travel Bank Pending: Click-through Conversions"    ,
+   "Flex Application Conversion tags : Flex App United Travel Bank Application: View-through Conversions" ,
+  "Flex Application Conversion tags : Flex App United Travel Bank Approved: View-through Conversions"    ,
+ "Flex Application Conversion tags : Flex App United Travel Bank Pending: View-through Conversions"      ,
+"Partner - United : Flex App United Explorer Business Approved: Click-through Conversions"               ,
+"Partner - United : Flex App United Explorer Business Pending: Click-through Conversions"
+  
+)
+
+
+
+MonthlyBreakout <- function(Data,Start,End){
+  
+  a <- Data %>% filter(`Date` <= End, `Date` >= Start) %>% 
+    group_by(`Site (DCM)`) %>% 
+    select(Columns.to.use) %>% 
+    summarise_all(sum,na.rm=T)
+   
+  return(a)
+}
+
+Total.AcqAwa <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Consumer_campaigns) ,start.date,end.date)
+July.AcqAwa <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Consumer_campaigns ) ,"2019-07-01","2019-07-31")
+August.AcqAwa <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Consumer_campaigns ),"2019-08-01","2019-08-31")
+
+Total.Business <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Business_campaigns ),start.date,end.date)
+July.Business <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Business_campaigns ) ,"2019-07-01","2019-07-31")
+August.Business <- MonthlyBreakout(Joined_Final %>% filter(Campaign %in% Business_campaigns ),"2019-08-01","2019-08-31")
+
+
+
+write.csv(July.AcqAwa,file="~July.AcqAwa.csv")
+write.csv(August.AcqAwa,file="~August.AcqAwa.csv")
+write.csv(Total.AcqAwa,file="~Total.AcqAwa.csv")
+
+write.csv(July.Business,file="~July.Business.csv")
+write.csv(August.Business,file="~August.Business.csv")
+write.csv(Total.Business,file="~Total.Business.csv")
+## cols needed Total_SummaryS
+
+
+
+## Creative by Size
+size  <- Joined_Final %>% filter(Campaign %in% Consumer_campaigns)
+#size <- size %>% filter(!grepl('Persado',Creative,ignore.case = T))
+size$Creative <- gsub(".*300x50.*", "300x50", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*120x600.*", "120x600", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*320x50.*", "320x50", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*160x600.*", "160x600", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*160X600.*", "160x600", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*300x250.*", "300x250", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*300x600.*", "300x600", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*728x90.*", "728x90", size$Creative, ignore.case = T)
+size$Creative <- gsub(".*970x250.*", "970x250", size$Creative, ignore.case = T)
+
+creative_by_size <- size %>% group_by(Creative)
+creative_by_size <- select(creative_by_size, c(14,15,28,33,35,37,34,36,38,49,47,45,50,48,46,55,53,51,56,54,52,39,41,43,40,42,44))
+creative_by_size <- creative_by_size %>% summarize_all(funs(sum(., na.rm = TRUE)))
+
+write.csv(creative_by_size, file="~creative_by_size.csv")
+
+## Creative by Variant
+variant  <- Joined_Final %>% filter(Campaign %in% Consumer_campaigns)
+#size <- size %>% filter(!grepl('Persado',Creative,ignore.case = T))
+variant$Creative <- gsub(".*_variant1_offer.*", "Variant 1", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_variant2_offer.*", "Variant 2", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_variant3_offer.*", "Variant 3", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_variant4_offer.*", "Variant 4", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_variant5_offer.*", "Variant 5", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_variant6_offer.*", "Variant 6", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*Q2PP_Offer_.*", "Offer", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_FullOffer_.*", "Full Offer", variant$Creative, ignore.case = T)
+variant$Creative <- gsub(".*_Static.*", "Static", variant$Creative, ignore.case = T)
+
+creative_by_variant <- variant %>% group_by(Creative)
+creative_by_variant <- select(creative_by_variant, c(14,15,28,33,35,37,34,36,38,49,47,45,50,48,46,55,53,51,56,54,52,39,41,43,40,42,44))
+creative_by_variant <- creative_by_variant %>% summarize_all(funs(sum(., na.rm = TRUE)))
+
+write.csv(creative_by_variant, file="~creative_by_variant.csv")
+
+
+#####
+
+# Business Details Creative
+
+#######
+
+
+
+## Creative by Size
+business.size  <- Joined_Final %>% filter(Campaign %in% Business_campaigns)
+#size <- size %>% filter(!grepl('Persado',Creative,ignore.case = T))
+business.size$Creative <- gsub(".*300x50.*", "300x50", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*120x600.*", "120x600", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*320x50.*", "320x50", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*160x600.*", "160x600", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*160X600.*", "160x600", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*300x250.*", "300x250", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*300x600.*", "300x600", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*728x90.*", "728x90", business.size$Creative, ignore.case = T)
+business.size$Creative <- gsub(".*970x250.*", "970x250", business.size$Creative, ignore.case = T)
+
+business_creative_by_size <- business.size %>% group_by(Creative)
+business_creative_by_size <- select(business_creative_by_size, c(14,15,28,33,35,37,34,36,38,49,47,45,50,48,46,55,53,51,56,54,52,39,41,43,40,42,44))
+business_creative_by_size <- business_creative_by_size %>% summarize_all(funs(sum(., na.rm = TRUE)))
+
+write.csv(business_creative_by_size, file="~business_creative_by_size.csv")
+
+## Creative by Variant
+business_variant  <- Joined_Final %>% filter(Campaign %in% Business_campaigns)
+#size <- size %>% filter(!grepl('Persado',Creative,ignore.case = T))
+business_variant$Creative <- gsub(".*_variant1_offer.*", "Variant 1", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_variant2_offer.*", "Variant 2", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_variant3_offer.*", "Variant 3", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_variant4_offer.*", "Variant 4", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_variant5_offer.*", "Variant 5", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_variant6_offer.*", "Variant 6", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*Q2PP_Offer_.*", "Offer", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*Biz_OfferEnds.*", "Business Offer Ends", business_variant$Creative, ignore.case = T)
+business_variant$Creative <- gsub(".*_Static.*", "Static", business_variant$Creative, ignore.case = T)
+
+business_creative_by_variant <- business_variant %>% group_by(Creative)
+business_creative_by_variant <- select(business_creative_by_variant, c(14,15,28,33,35,37,34,36,38,49,47,45,50,48,46,55,53,51,56,54,52,39,41,43,40,42,44))
+business_creative_by_variant <- business_creative_by_variant %>% summarize_all(funs(sum(., na.rm = TRUE)))
+
+write.csv(business_creative_by_variant, file="~business_creative_by_variant.csv")
+
+
+## awareness is contextual and BT -- behavioral targeting acuity ads & tradedesk
+
+## acquisition is retargeting ad group (tradedesk)
+
+
+
+
+## Topline Aggregates
+
+aggregate_prep <- Total.AcqAwa
+# aggregate_prep <- aggregate_prep %>% mutate(`Media Cost`= ifelse(`Site (DCM)`== "THE TRADE DESK RT", 138349.9,`Media Cost`))
+# View(aggregate_prep)
+
+# aggregate_prep <- rbind(aggregate_prep,c())
+aggregate_prep <- aggregate_prep %>% mutate(CPC = `Media Cost`/Clicks)
+aggregate_prep <- aggregate_prep %>% mutate(Total_Approvals = 
+                                              
+`Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions` +
+`Flex Application Conversion tags : United Instant Approval TY Page: View-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Approved: Click-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Approved: View-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Approved: Click-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Approved: View-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Approved: Click-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Approved: View-through Conversions` +
+`Partner - United : Flex App United Explorer Business Approved: Click-through Conversions` +  
+                                              
+( `Flex Application Conversion tags : United Pending TY Page: Click-through Conversions` +
+`Flex Application Conversion tags : United Pending TY Page: View-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Pending: Click-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Pending: View-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Pending: Click-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Pending: View-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Pending: Click-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Pending: View-through Conversions` + 
+`Partner - United : Flex App United Explorer Business Pending: Click-through Conversions`) *.33
+ )
+
+
+
+# CT Approvals
+
+aggregate_prep <- aggregate_prep %>% mutate(CT_Approvals = 
+                                              
+`Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Approved: Click-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Approved: Click-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Approved: Click-through Conversions` +
+`Partner - United : Flex App United Explorer Business Approved: Click-through Conversions` + 
+
+
+(`Flex Application Conversion tags : United Pending TY Page: Click-through Conversions` +
+`Flex Application Conversion tags : United Club Card_Pending: Click-through Conversions` +
+`Flex Application Conversion tags : United Business Card_Pending: Click-through Conversions` +
+`Flex Application Conversion tags : Flex App United Travel Bank Pending: Click-through Conversions` +
+ `Partner - United : Flex App United Explorer Business Pending: Click-through Conversions`) *.33
+)
+
+
+## Total CPA
+
+aggregate_prep <- aggregate_prep %>% mutate(Total_CPA = 
+`Media Cost`/`Total_Approvals`)
+
+## CT CPA
+
+aggregate_prep <- aggregate_prep %>% mutate(CT_CPA = 
+`Media Cost`/`CT_Approvals`)
+
+aggregate_prep <- select(aggregate_prep,c(1,29:33))
+
+## output
+
+write.csv(aggregate_prep, file="~aggregate_prep.csv")
+
+## Business Card Prep
+
+
+business_prep <- Total.Business
+# business_prep <- business_prep %>% mutate(`Media Cost`= ifelse(`Site (DCM)`== "THE TRADE DESK RT", 138349.9,`Media Cost`))
+# View(business_prep)
+
+# business_prep <- rbind(business_prep,c())
+business_prep <- business_prep %>% mutate(CPC = `Media Cost`/Clicks)
+business_prep <- business_prep %>% mutate(Total_Approvals = 
+                                              
+                                              `Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions` +
+                                              `Flex Application Conversion tags : United Instant Approval TY Page: View-through Conversions` +
+                                              `Flex Application Conversion tags : United Club Card_Approved: Click-through Conversions` +
+                                              `Flex Application Conversion tags : United Club Card_Approved: View-through Conversions` +
+                                              `Flex Application Conversion tags : United Business Card_Approved: Click-through Conversions` +
+                                              `Flex Application Conversion tags : United Business Card_Approved: View-through Conversions` +
+                                              `Flex Application Conversion tags : Flex App United Travel Bank Approved: Click-through Conversions` +
+                                              `Flex Application Conversion tags : Flex App United Travel Bank Approved: View-through Conversions` +
+                                              `Partner - United : Flex App United Explorer Business Approved: Click-through Conversions` + 
+                                              
+                                              ( `Flex Application Conversion tags : United Pending TY Page: Click-through Conversions` +
+                                                  `Flex Application Conversion tags : United Pending TY Page: View-through Conversions` +
+                                                  `Flex Application Conversion tags : United Club Card_Pending: Click-through Conversions` +
+                                                  `Flex Application Conversion tags : United Club Card_Pending: View-through Conversions` +
+                                                  `Flex Application Conversion tags : United Business Card_Pending: Click-through Conversions` +
+                                                  `Flex Application Conversion tags : United Business Card_Pending: View-through Conversions` +
+                                                  `Flex Application Conversion tags : Flex App United Travel Bank Pending: Click-through Conversions` +
+                                                  `Flex Application Conversion tags : Flex App United Travel Bank Pending: View-through Conversions` +
+                                                  `Partner - United : Flex App United Explorer Business Pending: Click-through Conversions`) *.33
+)
+
+
+
+# CT Approvals
+
+business_prep <- business_prep %>% mutate(CT_Approvals = 
+                                              
+                                              `Flex Application Conversion tags : United Instant Approval TY Page: Click-through Conversions` +
+                                              `Flex Application Conversion tags : United Club Card_Approved: Click-through Conversions` +
+                                              `Flex Application Conversion tags : United Business Card_Approved: Click-through Conversions` +
+                                              `Flex Application Conversion tags : Flex App United Travel Bank Approved: Click-through Conversions` +
+                                              `Partner - United : Flex App United Explorer Business Approved: Click-through Conversions` + 
+                                              
+                                              
+                                              (`Flex Application Conversion tags : United Pending TY Page: Click-through Conversions` +
+                                                 `Flex Application Conversion tags : United Club Card_Pending: Click-through Conversions` +
+                                                 `Flex Application Conversion tags : United Business Card_Pending: Click-through Conversions` +
+                                                 `Flex Application Conversion tags : Flex App United Travel Bank Pending: Click-through Conversions` +
+                                                 `Partner - United : Flex App United Explorer Business Pending: Click-through Conversions`) *.33
+)
+
+
+## Total CPA
+
+business_prep <- business_prep %>% mutate(Total_CPA = 
+                                              `Media Cost`/`Total_Approvals`)
+
+## CT CPA
+
+business_prep <- business_prep %>% mutate(CT_CPA = 
+                                              `Media Cost`/`CT_Approvals`)
+
+business_prep <- select(business_prep,c(1,29:33))
+
+## output
+
+write.csv(business_prep, file="~business_prep.csv")
+## FINITO
+
+
+## ttd ad hoc info
