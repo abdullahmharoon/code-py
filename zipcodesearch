@@ -1,0 +1,27 @@
+from uszipcode import SearchEngine, SimpleZipcode, ComprehensiveZipcode
+import pandas as pd
+
+with SearchEngine() as search:
+    for zipcode in search.by_state(state="California"):
+        print(zipcode)
+
+zipcode
+
+engine = SearchEngine()
+allzips = {}
+for i in range(100000): #Get zipcode info for every possible 5-digit combination
+    zipcode = str(i).zfill(5)
+    try: allzips[zipcode] = engine.by_zipcode(zipcode).to_dict()
+    except: pass
+#Convert dictionary to DataFrame
+allzips = pd.DataFrame(allzips).T.reset_index(drop = True)
+
+allzips
+allzips.loc[allzips['post_office_city'] == 'Land O Lakes, WI']
+
+df1 = df[['zip','city','state_id','state_name','county_fips','county_name']]
+df1
+
+df['zip'] = df['zip'].astype(str)
+df['zip_new'] = df['zip'].apply(lambda x: 'US' + x[:5])
+df
