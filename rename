@@ -1,0 +1,11 @@
+import argparse
+import pandas as pd
+import csv
+from sqlalchemy import create_engine
+
+df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Downloads//csv/allergies.csv',sep=',',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+df1 = df[['PATIENT','ENCOUNTER','DESCRIPTION']]
+df1.rename(columns={'DESCRIPTION':'ALLERGIES_DESCRIPTION'},inplace=True)
+df1
+engine = create_engine('mysql+pymysql://root:oMgRbovtAdL42Eb2@mysql.huma.local/azureml', pool_recycle=60, pool_pre_ping=True) ## azureml dev
+df1.to_sql("Allergies", engine, if_exists="replace",index=False)
