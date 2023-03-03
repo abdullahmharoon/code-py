@@ -1,0 +1,23 @@
+import argparse
+import pandas as pd
+import csv
+from sqlalchemy import create_engine
+import numpy as np
+
+df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Documents/HUMA/azureml/ACS_DP05_Y2020_demo.csv',sep=',',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+
+#df.columns.value_counts()
+#df.shape
+df.count()
+
+df1 = df.loc[:,df.columns.str.startswith('Estimate!!RACE!!Total population!!')]
+df.loc[:,['Estimate_SEX' in i for i in df.columns]]
+df1 = df.iloc[:,df.columns.str.startswith('Estimate!!RACE!!Total population')]
+df1.columns
+df1.count()
+
+df.columns = df.columns.str.replace('!!', '_')
+df1.rename(columns={'population_One_race.1':'population_One_race'},inplace=True)
+
+
+df1.columns=list(map(lambda x:x.replace('_and_','_&_'),df.columns))
