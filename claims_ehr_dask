@@ -1,0 +1,35 @@
+import argparse
+import pandas as pd
+import dask.dataframe as dd
+import dask
+import csv
+from sqlalchemy import create_engine
+import numpy as np
+import os
+
+
+current_dir =  os.path.abspath(os.getcwd())
+observationsdf = dd.read_csv(current_dir + '/../data/claims_ehr_data/observations.csv',dtype={'DATE': 'object','PATIENT':'object','ENCOUNTER':'object','CODE':'object','DESCIPTION':'object','VALUE': 'object','UNITS':'object','TYPE':'object'})
+allergiesdf = dd.read_csv(current_dir + '/../data/claims_ehr_data/allergies.csv',sep=',',dtype={'START':'object','STOP':'object'})
+medicationsdf = dd.read_csv(current_dir + '/../data/claims_ehr_data/medications.csv',sep=',')
+proceduresdf = dd.read_csv(current_dir + '/../data/claims_ehr_data/procedures.csv',sep=',')
+patientsdf = dd.read_csv(current_dir + '/../data/claims_ehr_data/patients.csv',sep=',',dtype={'DEATHDATE': 'object','SUFFIX':'object'})
+
+#allergiesdf.dtypes
+#observationsdf.dtypes
+#medicationsdf.dtypes
+proceduresdf.dtypes
+patientsdf.dtypes
+
+observationsdf['VALUE']=observationsdf['VALUE'].astype(float)
+#allergiesdf['VALUE']=allergiesdf['VALUE'].astype(float)
+
+observationsdf.dtypes
+allergiesdf.dtypes
+df2 = dd.merge(observationsdf,allergiesdf, on='PATIENT')
+df3 = dd.merge(df2,medicationsdf, on='PATIENT')
+df4 = dd.merge(df3,proceduresdf, on='PATIENT')
+df5 = dd.merge(df4,patientsdf, left_on='PATIENT', right_on='Id', how='left')
+
+df5.groupby('SSN')
+# df5.head()
