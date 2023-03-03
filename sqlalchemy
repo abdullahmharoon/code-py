@@ -1,0 +1,30 @@
+import argparse
+import pandas as pd
+import csv
+from sqlalchemy import create_engine
+
+df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Documents/Huma/510k/510k_output.csv',sep='|',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+#df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Downloads/FreeText Insights.csv',sep=',',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+#df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Downloads/FreeText Activities.csv',sep=',',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+#df = pd.DataFrame(pd.read_csv('///Users/abdullahharoon/Downloads/FreeText Inquiries.csv',sep=',',encoding = "ISO-8859-1", on_bad_lines='skip' , low_memory=False))
+
+df
+df.shape
+
+from sqlalchemy import create_engine
+import pymysql.cursors
+import pymysql
+
+#engine = create_engine('mysql+pymysql://root:E20pcFWZgdmzs9iu@mysql.huma.local/510k', pool_recycle=60, pool_pre_ping=True) #510k Prod
+engine = create_engine('mysql+pymysql://root:oMgRbovtAdL42Eb2@mysql.huma.local/510k', pool_recycle=60, pool_pre_ping=True) #510k Prod
+
+df = pd.read_csv('///Users/abdullahharoon/Documents/Huma/510k/510k_output.csv',sep='|',header=0,encoding = "UTF-8", on_bad_lines='skip' , low_memory=False)
+
+try:
+    df.to_sql("510k", engine, if_exists= 'replace', index= False)
+
+#except:
+    #print("Sorry, some error has occurred!")
+
+finally:
+    engine.dispose()
